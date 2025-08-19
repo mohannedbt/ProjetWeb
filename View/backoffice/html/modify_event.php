@@ -1,7 +1,9 @@
 <?php
 require_once "../../../config.php";
+require_once "../../../Controller/EvenementController.php";
 $config = new config();
 $pdo = $config->getConnexion();
+$eventController = new EvenementController($pdo);
 
 // Fetch event by id
 if (!isset($_GET['id'])) {
@@ -9,9 +11,7 @@ if (!isset($_GET['id'])) {
 }
 $eventId = intval($_GET['id']);
 
-$stmt = $pdo->prepare("SELECT * FROM evenement WHERE id = :id");
-$stmt->execute(['id' => $eventId]);
-$event = $stmt->fetch(PDO::FETCH_ASSOC);
+$event =$eventController->getById($eventId);
 
 if (!$event) {
     die("Event not found.");
@@ -19,45 +19,21 @@ if (!$event) {
 
 // Handle update form
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $titre = $_POST['titre'];
-    $description = $_POST['description'];
-    $date_event = $_POST['date_event'];
-    $lieu = $_POST['lieu'];
-    $organisateur_id = $_POST['organisateur_id'];
+    // Prepare data to pass to controller
+    $data = [
+        'titre' => $_POST['titre'],
+        'description' => $_POST['description'],
+        'date' => $_POST['date_event'],  // match with controller's expected key
+        'lieu' => $_POST['lieu'],
+        'organisateur_id' => $_POST['organisateur_id'],
+        'current_image' => $event['image'] ?? null
+    ];
 
-    // Image handling
-    $imageName = $event['image']; // keep old by default
-    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = __DIR__ . "/../../../organizator_images/$organisateur_id/";
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
+    $file = $_FILES['image'] ?? null;
 
-        // Delete old image if exists
-        if ($event['image'] && file_exists($uploadDir . $event['image'])) {
-            unlink($uploadDir . $event['image']);
-        }
+    $eventController->update($eventId, $data, $file);
 
-        $imageName = basename($_FILES['image']['name']);
-        move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $imageName);
-    }
-
-    $update = $pdo->prepare("
-        UPDATE evenement 
-        SET titre = :titre, description = :description, date_event = :date_event, lieu = :lieu, organisateur_id = :organisateur_id, image = :image 
-        WHERE id = :id
-    ");
-    $update->execute([
-        'titre' => $titre,
-        'description' => $description,
-        'date_event' => $date_event,
-        'lieu' => $lieu,
-        'organisateur_id' => $organisateur_id,
-        'image' => $imageName,
-        'id' => $eventId
-    ]);
-
-    header("Location: index.php");
+    header("Location: event.php");
     exit;
 }
 ?>
@@ -181,6 +157,60 @@ input[type="file"] {
 </style>
 </head>
 <body>
+<div class="navbar">
+    <div class="nav-left">
+                 <a href="admin.php">Home</a>
+
+        <a href="demand.php">Inbox</a>
+        <a href="event.php">Manage Events</a>
+        <a href="logout.php">Logout</a>
+
+    </div>
+    <div class="nav-logo">Admin Dashboard</div>
+</div>
+
+<style>
+    * {
+    box-sizing: border-box; /* Include padding/border in width calculations */
+}
+/* Navbar */
+.navbar {
+    width: 100%;
+    top: 0;
+    left: 0;
+    position: sticky;
+    background: rgba(17,17,17,0.9);
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 0 15px #b200ff;
+    z-index: 1000;
+}
+
+.nav-left {
+    display: flex;
+    gap: 20px;
+}
+
+.nav-left a {
+    color: #b200ff;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s;
+}
+.nav-left a:hover {
+    color: #ff00ff;
+}
+
+/* Logo / title on right */
+.nav-logo {
+    font-size: 1.8em;
+    color: #b200ff;
+    font-weight: bold;
+}
+</style>
+
 
 <div class="container">
     <h1>Modify Event</h1>

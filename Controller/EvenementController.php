@@ -6,15 +6,21 @@ class EvenementController {
         $this->pdo = $pdo;
     }
 
-    // Add new event
-    public function add($data, $file) {
+    // Get event by ID
+    public function getById($id) {
+        $stmt = $this->pdo->prepare("SELECT * FROM evenement WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // Add new event (with file)
+    public function add($data, $file = null) {
         $imageName = null;
 
         if ($file && $file['error'] === UPLOAD_ERR_OK) {
             $organisateurId = $data['organisateur_id'];
             $uploadDir = __DIR__ . "/../organizator_images/" . $organisateurId . "/";
 
-            // Create dir if not exists
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0777, true);
             }
@@ -24,24 +30,25 @@ class EvenementController {
         }
 
         $stmt = $this->pdo->prepare("
-            INSERT INTO evenement (titre, description, date, lieu, image, organisateur_id) 
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO evenement (titre, description, date_event, lieu, image, organisateur_id, status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
             $data['titre'],
             $data['description'],
-            $data['date'],
+            $data['date_event'],
             $data['lieu'],
-            $imageName, // Save only file name
-            $data['organisateur_id']
+            $imageName,
+            $data['organisateur_id'],
+            $data['status'] ?? 'en_attente'
         ]);
 
         return "done";
     }
 
     // Modify event
-    public function update($id, $data, $file) {
-        $imageName = $data['current_image']; // Keep current by default
+    public function update($id, $data, $file = null) {
+        $imageName = $data['current_image'] ?? null; // Keep current by default
 
         if ($file && $file['error'] === UPLOAD_ERR_OK) {
             $organisateurId = $data['organisateur_id'];
@@ -62,16 +69,17 @@ class EvenementController {
 
         $stmt = $this->pdo->prepare("
             UPDATE evenement 
-            SET titre=?, description=?, date=?, lieu=?, image=?, organisateur_id=? 
+            SET titre=?, description=?, date_event=?, lieu=?, image=?, organisateur_id=?, status=? 
             WHERE id=?
         ");
         $stmt->execute([
             $data['titre'],
             $data['description'],
-            $data['date'],
+            $data['date_event'], // fixed column name
             $data['lieu'],
-            $imageName, // Save only file name
+            $imageName,
             $data['organisateur_id'],
+            $data['status'] ?? 'en_attente',
             $id
         ]);
 
@@ -93,20 +101,31 @@ class EvenementController {
 
         $stmt = $this->pdo->prepare("DELETE FROM evenement WHERE id=?");
         $stmt->execute([$id]);
-         if ($stmt->rowCount() > 0) {
-        return "done";  // Deleted successfully
-    } else {
-        return "not_found"; // No row found with this ID
-    }
-
-        
+        return $stmt->rowCount() > 0 ? "done" : "not_found";
     }
 
     // Get all events
     public function getAll() {
-        $stmt = $this->pdo->query("SELECT * FROM evenement");
+        $stmt = $this->pdo->query("SELECT e.*, u.nom AS organisateur_nom FROM evenement e JOIN utilisateur u ON e.organisateur_id = u.id");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-// Additional methods can be added here as needed
+    // Get events by status
+    public function getByStatus($status) {
+        $stmt = $this->pdo->prepare("
+            SELECT e.*, u.nom AS organisateur_nom 
+            FROM evenement e 
+            JOIN utilisateur u ON e.organisateur_id = u.id 
+            WHERE e.status = ?
+        ");
+        $stmt->execute([$status]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Update status of an event
+    public function updateStatus($id, $status) {
+        $stmt = $this->pdo->prepare("UPDATE evenement SET status=? WHERE id=?");
+        $stmt->execute([$status, $id]);
+        return "done";
+    }
 }

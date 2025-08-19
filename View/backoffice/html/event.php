@@ -5,12 +5,7 @@ require_once "../../../config.php";
 $config = new config();
 $pdo = $config->getConnexion();
 $eventController = new EvenementController($pdo);
-$stmt = $pdo->query("
-    SELECT e.*, o.nom AS organizer_name
-    FROM evenement e
-    LEFT JOIN utilisateur o ON e.organisateur_id = o.id
-");
-$events = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$events=$eventController->getAll(); // Fetch all events
 
 ?>
 
@@ -160,27 +155,96 @@ footer {
     font-size: 1em;
     color: #fff;
 }
+.event-card {
+    position: relative; /* Add this */
+    background: rgba(0,0,0,0.85);
+    border-radius: 20px;
+    width: 360px;
+    padding: 25px;
+    box-shadow: 0 0 12px #00ffff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-align: center;
+}
+
 </style>
 </head>
 <body>
+<div class="navbar">
+    <div class="nav-left">
+         <a href="admin.php">Home</a>
+        <a href="demand.php">Inbox</a>
+        <a href="event.php">Manage Events</a>
+        <a href="logout.php">Logout</a>
+    </div>
+    <div class="nav-logo">Admin Dashboard</div>
+</div>
+
+<style>
+/* Navbar */
+.navbar {
+    width: 100%;
+    top: 0;
+    left: 0;
+    position: sticky;
+    background: rgba(17,17,17,0.9);
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 0 15px #b200ff;
+    z-index: 1000;
+}
+
+.nav-left {
+    display: flex;
+    gap: 20px;
+}
+
+.nav-left a {
+    color: #b200ff;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s;
+}
+.nav-left a:hover {
+    color: #ff00ff;
+}
+
+/* Logo / title on right */
+.nav-logo {
+    font-size: 1.8em;
+    color: #b200ff;
+    font-weight: bold;
+}
+* {
+    box-sizing: border-box; /* Include padding/border in width calculations */
+}
+</style>
+
 
 
 <h1>Upcoming Events</h1>
-
 <div class="events-container">
     <?php if (!empty($events)): ?>
         <?php foreach ($events as $event): ?>
             <div class="event-card">
-                 <?php
-        $imagePath = $event['image'] 
-            ? "../../../organizator_images/" . $event['organisateur_id'] . "/" . $event['image'] 
-            : "https://via.placeholder.com/350x180.png?text=Event";
-        ?>
-        <img src="<?= htmlspecialchars($imagePath) ?>" alt="Event Image">
-        
+                <?php
+                    $imagePath = $event['image'] 
+                        ? "../../../organizator_images/" . $event['organisateur_id'] . "/" . $event['image'] 
+                        : "https://via.placeholder.com/350x180.png?text=Event";
+                ?>
+                <img src="<?= htmlspecialchars($imagePath) ?>" alt="Event Image">
+
+                <!-- Pending Badge -->
+                <?php if ($event['status'] === 'en_attente'): ?>
+                    <div style="position:absolute; top:10px; right:10px; background:#ff00ff; color:#000; padding:5px 10px; border-radius:10px; font-weight:bold; z-index:10;">
+                        Pending - <a href="demand.php" style="color:#00ffff; text-decoration:underline;">See Inbox</a>
+                    </div>
+                <?php endif; ?>
+
                 <!-- Event Title -->
                 <h2><?= htmlspecialchars($event['titre']) ?></h2>
-                
+
                 <!-- Event Details -->
                 <div class="event-details">
                     <p><strong>Description:</strong> <?= htmlspecialchars($event['description']) ?></p>
@@ -188,7 +252,7 @@ footer {
                     <p><strong>Location:</strong> <?= htmlspecialchars($event['lieu']) ?></p>
                     <p><strong>Organizer:</strong> <?= htmlspecialchars($event['organisateur_id']) ?></p>
                 </div>
-                
+
                 <!-- Buttons -->
                 <a href="modify_event.php?id=<?= $event['id'] ?>" class="btn btn-modify">Modify</a>
                 <a href="delete_event.php?id=<?= $event['id'] ?>" class="btn btn-delete">Delete</a>
@@ -198,6 +262,7 @@ footer {
         <p style="color:#ff00ff; text-align:center;">No events found.</p>
     <?php endif; ?>
 </div>
+
 
 <footer>
     &copy; <?= date('Y') ?> Neon Techno Events. All rights reserved.

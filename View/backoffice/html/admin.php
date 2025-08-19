@@ -230,8 +230,11 @@ body {
 <!-- NAVBAR -->
 <div class="navbar">
     <div class="nav-left">
+                 <a href="admin.php">Home</a>
         <a href="demand.php">Inbox</a>
         <a href="event.php">Manage Events</a>
+        <a href="logout.php">Logout</a>
+
     </div>
     <div class="nav-logo">Admin Dashboard</div>
 </div>

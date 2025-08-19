@@ -16,7 +16,7 @@ $eventController = new EvenementController($pdo);
 
 // Attempt to delete the event
 $id = intval($_GET['id']); // sanitize input
-$deleted = $eventController->delete(id: $id);
+$eventController->delete(id: $id);
 
 // Clear output buffer
 ob_end_clean();
@@ -70,7 +70,7 @@ p {
 </style>
 <script>
 // Delay redirect with countdown
-let countdown = 5; // seconds
+let countdown = 1; // seconds
 function updateCountdown() {
     document.getElementById('countdown').innerText = "Redirecting in " + countdown + " seconds...";
     if(countdown === 0) {

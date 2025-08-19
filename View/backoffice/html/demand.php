@@ -1,29 +1,15 @@
 <?php
 require_once "../../../config.php";
+require_once "../../../Controller/EvenementController.php";
+require_once "../../../Controller/UserController.php";
+
 $config = new config();
 $pdo = $config->getConnexion();
+$eventController = new EvenementController($pdo);
+$userController = new UserController($pdo);
 
-// Hard-coded event requests
-$requests = [
-    [
-        'id' => 1,
-        'titre' => 'Summer Neon Party',
-        'description' => 'A crazy summer party with neon lights and techno music.',
-        'date_event' => '2025-09-10',
-        'lieu' => 'Neon Club',
-        'organisateur_id' => 2,
-        'image' => 'summer_party.jpg',
-    ],
-    [
-        'id' => 2,
-        'titre' => 'Cyberpunk Festival',
-        'description' => 'Techno vibes all night, bring your best costumes!',
-        'date_event' => '2025-09-20',
-        'lieu' => 'City Center',
-        'organisateur_id' => 3,
-        'image' => 'cyberpunk_fest.png',
-    ],
-];
+// Fetch events that are pending
+$requests = $eventController->getByStatus('en_attente');
 ?>
 
 <!DOCTYPE html>
@@ -64,6 +50,59 @@ h1 { margin-top: 40px; font-size: 3.5em; color: #ff00ff; text-shadow: 0 0 5px #f
 </style>
 </head>
 <body>
+    <!-- NAVBAR -->
+<div class="navbar">
+    <div class="nav-left">
+        <a href="admin.php">Home</a>
+        <a href="demand.php">Inbox</a>
+        <a href="event.php">Manage Events</a>
+        <a href="logout.php">Logout</a>
+    </div>
+    <div class="nav-logo">Admin Dashboard</div>
+</div>
+
+<style>
+/* Navbar */
+.navbar {
+    width: 100%;
+    top: 0;
+    left: 0;
+    position: sticky;
+    background: rgba(17,17,17,0.9);
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 0 15px #b200ff;
+    z-index: 1000;
+}
+
+.nav-left {
+    display: flex;
+    gap: 20px;
+}
+
+.nav-left a {
+    color: #b200ff;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s;
+}
+.nav-left a:hover {
+    color: #ff00ff;
+}
+
+/* Logo / title on right */
+.nav-logo {
+    font-size: 1.8em;
+    color: #b200ff;
+    font-weight: bold;
+}
+* {
+    box-sizing: border-box; /* Include padding/border in width calculations */
+}
+</style>
+
 
 <h1>Inbox - Event Requests</h1>
 
@@ -74,13 +113,14 @@ h1 { margin-top: 40px; font-size: 3.5em; color: #ff00ff; text-shadow: 0 0 5px #f
             <p><strong>Description:</strong> <?= htmlspecialchars($req['description']) ?></p>
             <p><strong>Date:</strong> <?= htmlspecialchars($req['date_event']) ?></p>
             <p><strong>Location:</strong> <?= htmlspecialchars($req['lieu']) ?></p>
-            <p><strong>Organizer ID:</strong> <?= htmlspecialchars($req['organisateur_id']) ?></p>
-            <p><strong>Image:</strong> <?= htmlspecialchars($req['image']) ?></p>
+            <p><strong>Organizer:</strong> <?= htmlspecialchars($req['organisateur_nom']) ?></p>
+
+            <?php if (!empty($req['image'])): ?>
+                <img src='../../../organizator_images/<?= $req['organisateur_id'] ?>/<?= htmlspecialchars($req['image']) ?>' width='200'>
+            <?php endif; ?>
 
             <form method="POST" action="process_request.php">
-                <?php foreach ($req as $key => $value): ?>
-                    <input type="hidden" name="<?= $key ?>" value="<?= htmlspecialchars($value) ?>">
-                <?php endforeach; ?>
+                <input type="hidden" name="id" value="<?= $req['id'] ?>">
                 <button type="submit" name="action" value="accept" class="btn btn-accept">Accept</button>
                 <button type="submit" name="action" value="refuse" class="btn btn-refuse">Refuse</button>
             </form>
