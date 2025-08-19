@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../config.php';
 $pdo = config::getConnexion();
 
 if (isset($_POST['login'])) {
-    $email = $_POST['email'];
+    $email = trim($_POST['email']);
     $mot_de_passe = $_POST['mot_de_passe'];
 
     // Vérifier si l'utilisateur existe
@@ -12,21 +12,32 @@ if (isset($_POST['login'])) {
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 
-    if ($user && password_verify($mot_de_passe, $user['mot_de_passe'])) {
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['role'] = $user['role'];
-        // Rediriger selon le rôle
-        if ($user['role'] == 'admin') {
-            header("Location: ../backoffice/dashboard.php");
+    if ($user) {
+        // Si l'utilisateur existe, vérifier le mot de passe
+        if (password_verify($mot_de_passe, $user['mot_de_passe'])) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['role'] = $user['role'];
+             $_SESSION['nom'] = $user['nom'] ; // Ajouter le nom complet
+
+            // Redirection selon rôle
+            if ($user['role'] == 'admin') {
+                header("Location: ../backoffice/dashboard.php");
+            } elseif ($user['role'] == 'participant') {
+               $_SESSION['nom_complet'] = $user['nom'] ;
+               header("Location: ../frontoffice/index.php");
+            } else {
+                header("Location: ../frontoffice/organisateur.php");
+            }
+            exit;
         } else {
-            header("Location: ../frontoffice/index.php");
+            $message = "❌ Mot de passe incorrect !";
         }
-        exit;
     } else {
-        $message = "Email ou mot de passe incorrect !";
+        $message = "❌ Ce compte n'existe pas. Veuillez vous inscrire.";
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -131,6 +142,11 @@ button{
             <div class="form-group">
                 <button type="submit" name="login">Se connecter</button>
             </div>
+            <?php if (isset($message)): ?>
+        <div style="color: red; margin-top:10px; font-weight:bold;">
+            <?= htmlspecialchars($message) ?>
+        </div>
+    <?php endif; ?>
         </form>
         <!-- Lien vers l'inscription -->
       <p style="margin-top: 50px; color: #0ff; text-align: center;">

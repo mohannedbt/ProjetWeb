@@ -1,16 +1,18 @@
 <?php
+session_start();
 require_once __DIR__ . '/../../config.php';
 
-// Récupérer PDO via la classe Config
+// Connexion à la BDD
 $pdo = Config::getConnexion();
 
+// Vérifier si un id est passé
 if (!isset($_GET['id'])) {
     die("Événement non trouvé !");
 }
 
 $event_id = (int)$_GET['id'];
 
-// Récupérer les détails de l'événement
+// Récupérer les détails de l'événement + organisateur
 $stmt = $pdo->prepare("
     SELECT e.*, u.nom AS organisateur_nom 
     FROM evenement e 
@@ -24,21 +26,27 @@ if (!$event) {
     die("Événement introuvable !");
 }
 
-// Vérifier si le participant est connecté
-session_start();
-// if (!isset($_SESSION['user_id'])) {
-//    die("Vous devez vous connecter pour réserver !");
-// }
+// Vérifier si participant connecté
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'participant') {
+    die("⚠️ Vous devez être connecté en tant que participant pour réserver !");
+}
 
-//$user_id = $_SESSION['user_id'];
-?>
+$user_id = $_SESSION['user_id'];
 
+// Gérer la réservation
+$message = "";
+if (isset($_POST['reserver'])) {
+    // Vérifier si déjà inscrit
+    $check = $pdo->prepare("SELECT * FROM participation WHERE utilisateur_id = ? AND evenement_id = ?");
+    $check->execute([$user_id, $event_id]);
 
-<?php
-if (isset($_POST['payer'])) {
-    $stmt = $pdo->prepare("INSERT INTO participation (utilisateur_id, evenement_id, statut) VALUES (?, ?, 'non paye')");
-    $stmt->execute([$user_id, $event_id]);
-    echo "<p>Votre participation a été enregistrée !</p>";
+    if ($check->rowCount() > 0) {
+        $message = "⚠️ Vous avez déjà réservé cet événement.";
+    } else {
+        $stmt = $pdo->prepare("INSERT INTO participation (utilisateur_id, evenement_id, statut) VALUES (?, ?, 'non paye')");
+        $stmt->execute([$user_id, $event_id]);
+        $message = "✅ Votre réservation a été enregistrée !";
+    }
 }
 ?>
 <!DOCTYPE html>

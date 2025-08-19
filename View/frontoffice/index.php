@@ -9,14 +9,29 @@ if (!class_exists('config')) {
 // Récupérer PDO via la classe config
 $pdo = config::getConnexion();
 
-// Test : récupérer tous les événements
-$stmt = $pdo->query("SELECT * FROM evenement");
-$events = $stmt->fetchAll();
+require_once __DIR__ . '/../../Controller/EvenementController.php';
 
-// foreach ($events as $event) {
-//     echo $event['titre'] . "<br>";
-// }
+
+// List of images in the folder
+$localImages = [
+    "images/1.jpg",
+    "images/2.jpg",
+    "images/3.jpg",
+    "images/events-in-london.jpg",
+    "images/check-july.png",
+    "images/summer-festivals.jpg",
+    "images/90.jpg",
+    "images/modern.jpg",
+    "images/smoke.jpg",
+    "images/summer-festival.jpg",
+    "images/autumn.jpg"
+];
+$controller = new EvenementController($pdo);
+$events = $controller->getAll();
 ?>
+
+
+
 <!-- <h2>Événements disponibles</h2> -->
 
 <!DOCTYPE html>
@@ -40,6 +55,47 @@ $events = $stmt->fetchAll();
     <!-- Styles -->
     <link rel="stylesheet" href="style.css">
     <script src="js/custom.js"></script>
+    <style>
+.homepage-featured-events .container {
+    overflow-x: auto;
+    padding: 20px 0;
+}
+
+.featured-events-scroll {
+    display: flex;
+    gap: 20px;
+}
+
+.event-content-wrap {
+    min-width: 250px;
+    background: rgba(0,0,0,0.8);
+    border-radius: 15px;
+    padding: 10px;
+    text-align: center;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+}
+
+.event-content-wrap:hover {
+    transform: scale(1.05);
+}
+
+.event-content-wrap img {
+    width: 100%;
+    border-radius: 10px;
+}
+
+.entry-title {
+    color: #0ff;
+    font-family: 'Orbitron', sans-serif;
+    margin-top: 10px;
+}
+
+.posted-date {
+    color: #ff00ff;
+    font-size: 0.9em;
+}
+</style>
 </head>
 <body>
 <header class="site-header">
@@ -74,9 +130,28 @@ $events = $stmt->fetchAll();
                 </div><!-- .col -->
 
                 <div class="col-lg-3 d-none d-lg-block order-2 order-lg-3">
-                    <div class="buy-tickets">
-                        <a class="btn gradient-bg" href="login.php">se connecter</a>
-                    </div><!-- .buy-tickets -->
+                    <?php session_start(); ?>
+<div class="buy-tickets">
+    <?php if(isset($_SESSION['user_id']) && $_SESSION['role'] == 'participant'): ?>
+        <!-- Affichage du profil du participant -->
+        <div style="display:flex; align-items:center; gap:10px;">
+            <img src="assets/profile_icon.png" 
+                 alt="Profil" 
+                 style="width:35px; height:35px; border-radius:50%; border:2px solid #0ff; box-shadow:0 0 5px #0ff;">
+            <span style="color:#0ff; font-family:'Orbitron',sans-serif;">
+                <?= htmlspecialchars($_SESSION['nom']); ?>
+            </span>
+            <a href="logout.php" 
+               style="padding:5px 10px; background:#f00; color:#fff; border-radius:5px; text-decoration:none; font-weight:bold;">
+               Déconnexion
+            </a>
+        </div>
+    <?php else: ?>
+        <!-- Bouton Se connecter -->
+        <a class="btn gradient-bg" href="login.php">Se connecter</a>
+    <?php endif; ?>
+</div>
+
                 </div><!-- .col -->
             </div><!-- .row -->
         </div><!-- .container-fluid -->
@@ -248,112 +323,21 @@ $events = $stmt->fetchAll();
 
 <div class="homepage-featured-events">
     <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <div class="featured-events-wrap flex flex-wrap justify-content-between">
-                    <div class="event-content-wrap positioning-event-1">
-                        <figure>
-                            <a href="details_event.php?id=2"><img src="images/1.jpg" alt="1"></a>
-                        </figure>
+        <div class="featured-events-scroll">
+            <?php foreach ($events as $index => $event): ?>
+                <div class="event-content-wrap">
+                    <figure>
+                        <a href="details_event.php?id=<?= $event['id'] ?>">
+                            <img src="<?= $localImages[$index % count($localImages)] ?>" alt="<?= htmlspecialchars($event['titre']) ?>">
+                        </a>
+                    </figure>
 
-                        <header class="entry-header">
-                            <h3 class="entry-title">Michael Smith in concert</h3>
-
-                            <div class="posted-date">August 25</div>
-                        </header>
-                    </div>
-
-                    <div class="event-content-wrap positioning-event-2">
-                        <figure>
-                            <a href="#"><img src="images/2.jpg" alt=""></a>
-                        </figure>
-
-                        <header class="entry-header">
-                            <h3 class="entry-title">Street art fest</h3>
-
-                            <div class="posted-date">November 28</div>
-                        </header>
-                    </div>
-
-                    <div class="event-content-wrap positioning-event-3">
-                        <figure>
-                            <a href="#"><img src="images/3.jpg" alt=""></a>
-                        </figure>
-
-                        <header class="entry-header">
-                            <h3 class="entry-title">Anabelle in concert</h3>
-
-                            <div class="posted-date">August 28</div>
-                        </header>
-                    </div>
-
-                    <div class="event-content-wrap positioning-event-4 half">
-                        <figure>
-                            <a href="#"><img src="images/events-in-london.jpg" alt=""></a>
-                        </figure>
-                    </div>
-
-                    <div class="event-content-wrap positioning-event-5 half">
-                        <figure>
-                            <a href="#"><img src="images/check-july.png" alt=""></a>
-                        </figure>
-                    </div>
-
-                    <div class="event-content-wrap positioning-event-6 half">
-                        <figure>
-                            <a href="#"><img src="images/summer-festivals.jpg" alt=""></a>
-                        </figure>
-                    </div>
-
-                    <div class="event-content-wrap positioning-event-7">
-                        <figure>
-                            <a href="#"><img src="images/90.jpg" alt=""></a>
-                        </figure>
-
-                        <header class="entry-header">
-                            <h3 class="entry-title">90’s Disco Night</h3>
-
-                            <div class="posted-date">August 28</div>
-                        </header>
-                    </div>
-
-                    <div class="event-content-wrap positioning-event-8">
-                        <figure>
-                            <a href="#"><img src="images/modern.jpg" alt="1"></a>
-                        </figure>
-
-                        <header class="entry-header">
-                            <h3 class="entry-title">Modern Ballet</h3>
-
-                            <div class="posted-date">August 25</div>
-                        </header>
-                    </div>
-
-                    <div class="event-content-wrap positioning-event-9">
-                        <figure>
-                            <a href="#"><img src="images/smoke.jpg" alt=""></a>
-                        </figure>
-
-                        <header class="entry-header">
-                            <h3 class="entry-title">Smoke show</h3>
-
-                            <div class="posted-date">August 28</div>
-                        </header>
-                    </div>
-
-                    <div class="event-content-wrap positioning-event-10 half">
-                        <figure>
-                            <a href="#"><img src="images/summer-festival.jpg" alt=""></a>
-                        </figure>
-                    </div>
-
-                    <div class="event-content-wrap positioning-event-11 half">
-                        <figure>
-                            <a href="#"><img src="images/autumn.jpg" alt=""></a>
-                        </figure>
-                    </div>
+                    <header class="entry-header">
+                        <h3 class="entry-title"><?= htmlspecialchars($event['titre']) ?></h3>
+                        <div class="posted-date"><?= date('F d', strtotime($event['date_event'])) ?></div>
+                    </header>
                 </div>
-            </div>
+            <?php endforeach; ?>
         </div>
     </div>
 </div>
