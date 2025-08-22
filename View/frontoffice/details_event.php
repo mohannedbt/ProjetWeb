@@ -158,7 +158,10 @@ if (isset($_POST['reserver'])) {
 ?>
 
         <form method="post">
-            <button type="submit" name="payer">Payer / Réserver</button>
+   <a href="reserver.php?id=<?= $event['id']; ?>">Réserver</a>
+
+
+
         </form>
         <?php
             if (isset($_POST['payer'])) {

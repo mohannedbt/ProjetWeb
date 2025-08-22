@@ -23,24 +23,38 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $errors = [];
 
     // Contrôles de saisie
-    if (empty($titre) || strlen($titre) > 15) {
-        $errors[] = "Le titre doit contenir au maximum 15 caractères.";
+   // Vérifier que tous les champs sont remplis
+if (empty($titre) || empty($description) || empty($date_event) || empty($lieu)) {
+    $errors[] = "Tous les champs doivent être remplis.";
+}
+
+// Vérif titre : lettres uniquement, max 15
+if (empty($titre) || strlen($titre) > 15 || !preg_match("/^[a-zA-ZÀ-ÿ\s]+$/", $titre)) {
+    $errors[] = "Le titre doit contenir uniquement des lettres, au maximum 15 caractères et ne pas être vide.";
+}
+
+// Vérif description : lettres uniquement, max 50
+if (empty($description) || strlen($description) > 50 || !preg_match("/^[a-zA-ZÀ-ÿ\s]+$/", $description)) {
+    $errors[] = "La description doit contenir uniquement des lettres, au maximum 50 caractères et ne pas être vide.";
+}
+
+// Vérif date (pas dans le passé)
+if (!empty($date_event) && strtotime($date_event) < strtotime(date("Y-m-d"))) {
+    $errors[] = "La date de l'événement ne peut pas être dans le passé.";
+}
+
+// Vérif lieu : lettres uniquement, max 10
+if (empty($lieu) || strlen($lieu) > 10 || !preg_match("/^[a-zA-ZÀ-ÿ\s]+$/", $lieu)) {
+    $errors[] = "Le lieu doit contenir uniquement des lettres, au maximum 10 caractères et ne pas être vide.";
+}
+
+// Vérif image : uniquement JPG/PNG
+if (!empty($_FILES['image']['name'])) {
+    $allowed = ['image/jpeg', 'image/png'];
+    if (!in_array($_FILES['image']['type'], $allowed)) {
+        $errors[] = "Seules les images JPG et PNG sont autorisées.";
     }
-    if (empty($description) || strlen($description) > 50) {
-        $errors[] = "La description doit contenir au maximum 50 caractères.";
-    }
-    if (!empty($date_event) && strtotime($date_event) < strtotime(date("Y-m-d"))) {
-        $errors[] = "La date de l'événement ne peut pas être dans le passé.";
-    }
-    if (empty($lieu) || strlen($lieu) > 10) {
-        $errors[] = "Le lieu doit contenir au maximum 10 caractères.";
-    }
-    if (!empty($_FILES['image']['name'])) {
-        $allowed = ['image/jpeg', 'image/png'];
-        if (!in_array($_FILES['image']['type'], $allowed)) {
-            $errors[] = "Seules les images JPG et PNG sont autorisées.";
-        }
-    }
+}
 
     if (!empty($errors)) {
         foreach ($errors as $e) {
@@ -85,3 +99,33 @@ echo '<div style="margin-top:20px;"><a href="organisateur.php"
      </a></div>';
 
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Process Request</title>
+<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body {
+    font-family: 'Orbitron','Audiowide', sans-serif;
+    background: #111;
+    color: <?= $color ?? '#fff' ?>;
+    text-align: center;
+    padding-top: 100px;
+}
+a {
+    color: #00ffff;
+    text-decoration: none;
+    font-weight: bold;
+}
+a:hover {
+    color: #ff00ff;
+}
+</style>
+</head>
+<body>
+    <h1><?= $message ?? '' ?></h1>
+   
+</body>
+</html>

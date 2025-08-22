@@ -81,7 +81,13 @@ public function update($id, $data, $file) {
     return "done";
 }
 
+    public function getById($id) {
+        $stmt = $this->pdo->prepare("SELECT * FROM evenement WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 
+    
     // Delete event
     public function delete($id) {
         $stmt = $this->pdo->prepare("SELECT image, organisateur_id FROM evenement WHERE id=?");
@@ -111,6 +117,27 @@ public function update($id, $data, $file) {
         $stmt = $this->pdo->query("SELECT * FROM evenement");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+      // Get all events
+
+    // Get events by status
+    public function getByStatus($status) {
+        $stmt = $this->pdo->prepare("
+            SELECT e.*, u.nom AS organisateur_nom 
+            FROM evenement e 
+            JOIN utilisateur u ON e.organisateur_id = u.id 
+            WHERE e.statut = ?
+        ");
+        $stmt->execute([$status]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Update status of an event
+    public function updateStatus($id, $status) {
+        $stmt = $this->pdo->prepare("UPDATE evenement SET statut=? WHERE id=?");
+        $stmt->execute([$status, $id]);
+        return "done";
+    }
+
 
 // Additional methods can be added here as needed
 }
