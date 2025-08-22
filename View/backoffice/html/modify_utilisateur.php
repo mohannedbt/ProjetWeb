@@ -10,7 +10,7 @@ $userController = new UserController($pdo);
 $userId = $_GET['id'] ?? null;
 if (!$userId) die("No user ID provided.");
 
-$user = $userController->getUserById($userId);
+$user = $userController->get($userId);
 if (!$user) die("User not found.");
 
 $errors = [];
@@ -46,9 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($mot_de_passe)) {
             $data['mot_de_passe'] = $mot_de_passe;
         }
-        $userController->updateUser($userId, $data);
+        $userController->update($userId, $data);
         $success = "✅ Utilisateur mis à jour avec succès!";
-        $user = $userController->getUserById($userId); // Refresh data
+        $user = $userController->get($userId); // Refresh data
     }
 }
 ?>
@@ -67,7 +67,7 @@ form { background: rgba(0,0,0,0.85); padding: 40px; border-radius:20px; box-shad
 
 .input-group { position:relative; margin-bottom:25px; }
 .input-group input,
-.input-group select { width:100%; padding:12px 12px 12px 10px; background:transparent; border:2px solid #00ffff; border-radius:10px; color:#fff; font-size:1em; outline:none; -webkit-appearance:none; }
+.input-group select { width:100%; padding:12px 12px 12px 10px; background:black; border:2px solid #00ffff; border-radius:10px; color:#fff; font-size:1em; outline:none; -webkit-appearance:none; }
 .input-group label { position:absolute; top:50%; left:12px; transform:translateY(-50%); color:#ff00ff; pointer-events:none; transition:0.3s; background: rgba(0,0,0,0.85); padding:0 5px; }
 .input-group input:focus + label,
 .input-group input:not(:placeholder-shown) + label,
@@ -78,6 +78,9 @@ button { width:100%; padding:12px; font-family: 'Orbitron', sans-serif; font-wei
 button:hover { filter: brightness(1.3); }
 
 .message { text-align:center; margin-bottom:15px; font-weight:bold; color:#00ff00; }
+* {
+    box-sizing: border-box; /* Include padding/border in width calculations */
+}
 .error { text-align:center; margin-bottom:10px; font-weight:bold; color:#ff0000; }
 </style>
 </head>

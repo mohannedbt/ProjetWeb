@@ -171,9 +171,10 @@ footer {
 <body>
 <div class="navbar">
     <div class="nav-left">
-         <a href="admin.php">Home</a>
+        <a href="admin.php">Home</a>
         <a href="demand.php">Inbox</a>
         <a href="event.php">Manage Events</a>
+        <a href="utilisateurs.php">Manage Users</a>
         <a href="logout.php">Logout</a>
     </div>
     <div class="nav-logo">Admin Dashboard</div>
@@ -227,6 +228,8 @@ footer {
 <div class="events-container">
     <?php if (!empty($events)): ?>
         <?php foreach ($events as $event): ?>
+                <?php if ($event['status'] === 'refuse') continue; ?> <!-- Skip refused -->
+
             <div class="event-card">
                 <?php
                     $imagePath = $event['image'] 

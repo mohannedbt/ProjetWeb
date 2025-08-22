@@ -56,10 +56,12 @@ h1 { margin-top: 40px; font-size: 3.5em; color: #ff00ff; text-shadow: 0 0 5px #f
         <a href="admin.php">Home</a>
         <a href="demand.php">Inbox</a>
         <a href="event.php">Manage Events</a>
+        <a href="utilisateurs.php">Manage Users</a>
         <a href="logout.php">Logout</a>
     </div>
     <div class="nav-logo">Admin Dashboard</div>
 </div>
+
 
 <style>
 /* Navbar */
@@ -76,7 +78,9 @@ h1 { margin-top: 40px; font-size: 3.5em; color: #ff00ff; text-shadow: 0 0 5px #f
     box-shadow: 0 0 15px #b200ff;
     z-index: 1000;
 }
-
+* {
+    box-sizing: border-box; /* Include padding/border in width calculations */
+}
 .nav-left {
     display: flex;
     gap: 20px;

@@ -42,12 +42,15 @@ tr:hover { background:rgba(255,0,255,0.1); }
 
 <div class="navbar">
     <div class="nav-left">
+        <a href="admin.php">Home</a>
         <a href="demand.php">Inbox</a>
         <a href="event.php">Manage Events</a>
-        <a href="users.php">Manage Users</a>
+        <a href="utilisateurs.php">Manage Users</a>
+        <a href="logout.php">Logout</a>
     </div>
     <div class="nav-logo">Admin Dashboard</div>
 </div>
+
 
 <div class="table-container">
     <a href="add_user.php" class="btn btn-add">+ Add User</a>
@@ -69,7 +72,7 @@ tr:hover { background:rgba(255,0,255,0.1); }
                 <td><?= htmlspecialchars($user['email']) ?></td>
                 <td><?= $user['role'] ?></td>
                 <td>
-                    <a href="edit_user.php?id=<?= $user['id'] ?>" class="btn btn-edit">Edit</a>
+                    <a href="modify_utilisateur.php?id=<?= $user['id'] ?>" class="btn btn-edit">Edit</a>
                     <a href="delete_user.php?id=<?= $user['id'] ?>" class="btn btn-delete" onclick="return confirm('Are you sure?');">Delete</a>
                 </td>
             </tr>
